@@ -41,11 +41,76 @@ This repo defines the **team tier** (on `main`) under:
 .claude/
 ├── agents/
 ├── commands/
+│   └── design-and-ux/    # UX review commands
+├── hooks/
+│   └── design-and-ux/    # UX-related hooks
 ├── rules/
+│   └── design-and-ux/    # UX, a11y, motion, interaction rules
 └── skills/
+    └── design-and-ux/    # Design system context skills
 ```
 
+Files are organized by domain (e.g., `ux/`) within each folder. This allows adding other domains later (e.g., `api/`, `testing/`).
+
 Each folder contains `*.team.*` files on `main`, with `*.group.*` files added on group branches.
+
+## Available slash commands
+
+| Command | Description |
+|---------|-------------|
+| `/review-ux` | Full review across all four UX rule groups (a11y, motion, interaction, UX patterns) |
+| `/review-motion` | Motion-only review — subset of `/review-ux` for animation/transition work |
+
+### /review-ux
+
+Runs a comprehensive UX review against all rule groups:
+
+1. **Pre-check** — Scans for duplicate components that already exist in the design system
+2. **Accessibility** — WCAG compliance, ARIA, keyboard navigation, focus management
+3. **Animation & Motion** — Transitions, reduced-motion support, performance
+4. **Interaction Design** — States, touch targets, dialogs, optimistic UI
+5. **UX Patterns** — Design tokens, empty/loading states, forms, dark/light mode
+
+Output is a structured report with severity levels: `error`, `warning`, `prompt`.
+
+### /review-motion
+
+Quick motion-only review for when you're working exclusively on animations or transitions.
+Runs only the pre-check and motion steps from `/review-ux`.
+
+## Hooks
+
+| Hook | Trigger | Description |
+|------|---------|-------------|
+| `pre-commit-ux-prompt` | pre-commit | Prompts engineer to run `/review-ux` when UI files are staged |
+
+### pre-commit-ux-prompt
+
+Fires when staged files include `*.tsx`, `*.css`, or `*.module.css`.
+Prompts the engineer to optionally run `/review-ux` before committing.
+Does not block — responds to `n` or timeout by allowing the commit to proceed.
+
+## Rules
+
+Team-tier rules provide passive context that Claude uses when working on matching files:
+
+| Rule | Applies to | Description |
+|------|------------|-------------|
+| `ux.team.md` | `**/*.tsx`, `**/*.css` | UX patterns, component conventions, layout rules |
+| `a11y.team.md` | `**/*.tsx` | Accessibility — WCAG, ARIA, keyboard nav, focus |
+| `motion.team.md` | `**/*.tsx`, `**/*.css` | Animation, transitions, reduced-motion, performance |
+| `interaction.team.md` | `**/*.tsx` | States, touch targets, dialogs, optimistic UI |
+
+## On agents
+
+The current commands are self-contained. If review logic grows complex enough
+to warrant separation, the recommended upgrade path is:
+
+- `@a11y-agent` — dedicated accessibility reviewer, callable from `/review-ux` or independently
+- `@motion-agent` — dedicated motion reviewer
+
+This keeps commands thin and agents focused. Promote to agents when you find
+yourself duplicating review logic across multiple commands.
 
 ## Naming conventions
 
@@ -69,6 +134,7 @@ One practical layout looks like:
     team/                # git submodule (this repo)
     agents/              # project/local live here (tracked by the project repo)
     commands/
+    hooks/
     rules/
     skills/
 ```
@@ -146,12 +212,26 @@ git add .claude/team
 git commit -m "Update claude-config submodule"
 ```
 
-## What's included (scaffold only)
+## What's included
 
-This repo intentionally contains **structure and documentation only**:
+This repo contains:
 
+### Rules (passive context)
+- `rules/design-and-ux/ux.team.md` — UX patterns, component conventions, layout
+- `rules/design-and-ux/a11y.team.md` — Accessibility standards
+- `rules/design-and-ux/motion.team.md` — Animation and transition rules
+- `rules/design-and-ux/interaction.team.md` — Interaction design patterns
+
+### Commands (slash commands)
+- `commands/design-and-ux/review-ux.team.md` — Full UX review command
+- `commands/design-and-ux/review-motion.team.md` — Motion-only review command
+
+### Hooks
+- `hooks/design-and-ux/pre-commit-ux-prompt.team.md` — Pre-commit prompt for UI file changes
+
+### Skills
+- `skills/design-and-ux/design-system.team.md` — Design system context (tokens, components, patterns)
+
+### Structure
 - `.claude/*/.gitkeep` to establish folders in git
-- One `example.team.md` per folder with a header explaining the file type
 - Group branches add `CLAUDE.group.md` with group-specific context
-
-No real rules/commands/agents/skills have been authored yet.
