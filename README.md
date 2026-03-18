@@ -54,6 +54,51 @@ Files are organized by domain (e.g., `ux/`) within each folder. This allows addi
 
 Each folder contains `*.team.*` files on `main`, with `*.group.*` files added on group branches.
 
+## Design and UX
+
+The `design-and-ux/` domain provides comprehensive frontend quality tooling built on [Impeccable](https://github.com/pbakaus/impeccable) by Paul Bakaus.
+
+### Why Impeccable?
+
+Without guidance, AI coding assistants produce generic output: Inter font, purple-to-blue gradients, cards nested inside cards, gray text on colored backgrounds, and hero sections with glassmorphism. Every LLM trained on the same templates produces the same generic output.
+
+Impeccable is an open-source Claude Code skill set (Apache 2.0) that addresses this "AI slop" problem by:
+
+- **Telling AI what NOT to do** — Negative constraints break the default trajectory
+- **Providing domain-specific guidance** — 7 reference docs covering typography, color, spatial design, motion, interaction, responsive, and UX writing
+- **Offering targeted slash commands** — 20 commands for specific design tasks
+
+### Impeccable Skills
+
+| Skill | Description |
+|-------|-------------|
+| `/audit` | Comprehensive quality audit (a11y, performance, theming, responsive) |
+| `/critique` | UX review with actionable feedback |
+| `/polish` | Final pre-ship quality pass |
+| `/normalize` | Align with design system standards |
+| `/colorize` | Color palette and theming |
+| `/typeset` | Typography improvements |
+| `/arrange` | Layout and spatial design |
+| `/animate` | Motion and transitions |
+| `/bolder` | Increase visual impact |
+| `/quieter` | Reduce visual noise |
+| `/delight` | Add personality and moments of joy |
+| `/overdrive` | Maximum creative expression |
+| `/clarify` | Improve comprehension and scannability |
+| `/distill` | Simplify and reduce complexity |
+| `/extract` | Pull reusable components |
+| `/adapt` | Responsive and cross-platform adaptations |
+| `/harden` | Edge cases, error states, defensive design |
+| `/onboard` | First-run and onboarding flows |
+| `/optimize` | Performance optimization |
+| `/teach-impeccable` | One-time setup — gathers project design context |
+
+### How It Connects
+
+1. **Skills reference each other** — `/audit` suggests follow-up commands like `/normalize` or `/optimize`
+2. **Hub skill** — `frontend-design` provides design principles and anti-patterns that other skills reference
+3. **Project context** — Run `/teach-impeccable` once per project to capture brand, audience, and aesthetic direction in `.impeccable.md`
+
 ## Available slash commands
 
 | Command | Description |
