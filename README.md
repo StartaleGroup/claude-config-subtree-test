@@ -174,7 +174,10 @@ settings.local.*
 ```bash
 git cc-pull
 # Or without alias (use your group branch):
-git subtree pull --prefix=claude-config-frontend claude-config group/strium```
+git subtree pull --prefix=claude-config-frontend claude-config group/strium
+```
+
+> **Note:** This creates a merge commit, so your editor will open for a commit message. The default message is fine — save and quit (`:wq` in vim) to continue.
 
 ---
 
