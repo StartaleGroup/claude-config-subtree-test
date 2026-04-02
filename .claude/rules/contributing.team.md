@@ -22,6 +22,11 @@ When creating or editing a config file, ask:
 
 Never write group-specific content into a `*.team.*` file. Never write team-wide content into a `*.group.*` file. If a rule starts as group-specific but later proves useful across all projects, promote it by creating a new `*.team.*` file on `main` — don't modify the group file to be more generic.
 
+**Project tier** (`*.project.*` files, in the consumer project repo):
+- Rules specific to a single project that don't belong in the shared config
+- These are committed directly in the consumer project's repo, not pushed back to this subtree
+- Examples: project-specific linting overrides, app-specific component patterns
+
 ## Submitting changes from consumer projects
 
 When pushing config changes back to this repo from a consumer project, always push to a **feature branch** and open a PR. Never push directly to `main` or a `group/*` branch.

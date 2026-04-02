@@ -109,17 +109,20 @@ Each folder contains `*.team.*` files on `main`, with `*.group.*` files added on
 
 ### Step 1: Add the subtree
 
+First, choose the branch that matches your project's group. Group branches include all team-level config from `main` plus group-specific rules:
+
+| If your project is... | Use branch |
+|----------------------|------------|
+| Strium homepage or DEX | `group/strium` |
+| Startale super app | `group/startale` |
+| SDK-related | `group/sdk` |
+| None of the above / team-only | `main` |
+
 ```bash
 # Add the remote (one-time)
 git remote add claude-config https://github.com/StartaleGroup/claude-config-frontend.git
 
-# Add the subtree
-git subtree add --prefix=claude-config-frontend claude-config main --squash
-```
-
-For a group-specific branch:
-
-```bash
+# Add the subtree (replace BRANCH with your group branch)
 git subtree add --prefix=claude-config-frontend claude-config group/strium --squash
 ```
 
@@ -137,10 +140,10 @@ git commit -m "Add .claude symlink to subtree config"
 
 ### Step 3: Set up git aliases (recommended)
 
-Add these to your project's git config for shorter commands:
+Add these to your project's git config (replace `group/strium` with your group branch):
 
 ```bash
-git config alias.cc-pull 'subtree pull --prefix=claude-config-frontend claude-config main --squash'
+git config alias.cc-pull 'subtree pull --prefix=claude-config-frontend claude-config group/strium --squash'
 git config alias.cc-push 'subtree push --prefix=claude-config-frontend claude-config'
 ```
 
@@ -171,13 +174,7 @@ settings.local.*
 
 ```bash
 git cc-pull
-# Or without alias:
-git subtree pull --prefix=claude-config-frontend claude-config main --squash
-```
-
-For a specific group branch:
-
-```bash
+# Or without alias (use your group branch):
 git subtree pull --prefix=claude-config-frontend claude-config group/strium --squash
 ```
 
