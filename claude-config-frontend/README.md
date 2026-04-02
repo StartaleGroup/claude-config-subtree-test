@@ -79,13 +79,13 @@ When making changes from a consumer project via `git subtree push`, always push 
 Branch naming convention for subtree PRs:
 
 ```
-subtree/<consumer-project>/<short-description>
+from/<consumer-project>/<short-description>
 ```
 
 Examples:
-- `subtree/dex-app/add-trading-rules`
-- `subtree/super-app/update-motion-tokens`
-- `subtree/sdk-docs/fix-a11y-rule`
+- `from/dex-app/add-trading-rules`
+- `from/super-app/update-motion-tokens`
+- `from/sdk-docs/fix-a11y-rule`
 
 ## Design and UX
 
@@ -248,7 +248,7 @@ Then use:
 git cc-pull
 
 # Push changes back (always to a feature branch, then open a PR)
-git cc-push subtree/my-project/description-of-change
+git cc-push from/my-project/description-of-change
 ```
 
 ### Step 4: Add to .gitignore (optional)
@@ -275,12 +275,12 @@ git subtree pull --prefix=claude-config-frontend claude-config main --squash
 Changes made to config files inside a consumer project can be pushed back to this repo. Always push to a feature branch and open a PR — never push directly to `main` or `group/*`.
 
 ```bash
-git cc-push subtree/my-project/add-api-rules
+git cc-push from/my-project/add-api-rules
 # Or without alias:
-git subtree push --prefix=claude-config-frontend claude-config subtree/my-project/add-api-rules
+git subtree push --prefix=claude-config-frontend claude-config from/my-project/add-api-rules
 ```
 
-Then open a PR from `subtree/my-project/add-api-rules` → `main` (or the appropriate `group/*` branch).
+Then open a PR from `from/my-project/add-api-rules` → `main` (or the appropriate `group/*` branch).
 
 ## Updating to latest team/group config
 
