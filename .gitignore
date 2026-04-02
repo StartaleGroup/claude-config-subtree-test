@@ -1,0 +1,4 @@
+# Local/personal Claude config (never committed)
+.claude/*.local.*
+.claude/**/*.local.*
+settings.local.*
