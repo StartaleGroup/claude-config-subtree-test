@@ -123,8 +123,7 @@ First, choose the branch that matches your project's group. Group branches inclu
 git remote add claude-config https://github.com/StartaleGroup/claude-config-frontend.git
 
 # Add the subtree (replace BRANCH with your group branch)
-git subtree add --prefix=claude-config-frontend claude-config group/strium --squash
-```
+git subtree add --prefix=claude-config-frontend claude-config group/strium```
 
 ### Step 2: Create the symlink
 
@@ -175,8 +174,7 @@ settings.local.*
 ```bash
 git cc-pull
 # Or without alias (use your group branch):
-git subtree pull --prefix=claude-config-frontend claude-config group/strium --squash
-```
+git subtree pull --prefix=claude-config-frontend claude-config group/strium```
 
 ---
 
