@@ -187,6 +187,17 @@ git subtree pull --prefix=claude-config-frontend claude-config group/strium --sq
 
 Changes made to config files inside a consumer project can be pushed back to this repo. Always push to a **feature branch** and open a PR — never push directly to `main` or `group/*`.
 
+### Team vs group: which branch to target
+
+Before creating a PR, determine whether your change is **team-level** or **group-level**:
+
+| Change type | File pattern | PR targets | Example |
+|-------------|-------------|------------|---------|
+| Applies to all front-end projects | `*.team.*` | `main` | Accessibility rules, shared UX patterns |
+| Specific to one app category | `*.group.*` | `group/*` branch | DEX trading UI rules, super app nav patterns |
+
+**Never mix team and group changes in the same PR.** If a rule starts as group-specific but proves useful across all projects, promote it by creating a new `*.team.*` file in a separate PR to `main`.
+
 ### Branch naming convention
 
 ```
@@ -194,9 +205,9 @@ from/<consumer-project>/<short-description>
 ```
 
 Examples:
-- `from/dex-app/add-trading-rules`
-- `from/super-app/update-motion-tokens`
-- `from/sdk-docs/fix-a11y-rule`
+- `from/dex-app/add-trading-rules` → PR to `group/strium`
+- `from/super-app/update-motion-tokens` → PR to `group/startale`
+- `from/sdk-docs/fix-a11y-rule` → PR to `main` (applies to all projects)
 
 ### How to push
 
