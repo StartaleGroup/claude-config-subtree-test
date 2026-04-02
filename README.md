@@ -1,10 +1,56 @@
-# Startale Front-End Team Claude Config (Team Tier)
+# Startale Front-End Team Claude Config
 
-This repo provides the **front-end team shared** Claude configuration layer for Startale projects.
+Shared Claude Code configuration for Startale front-end projects, distributed as a **git subtree**.
 
-## The four-tier system
+## Table of contents
 
-We use a simple naming convention to separate config by ownership and scope:
+- [How it works](#how-it-works)
+  - [The four-tier system](#the-four-tier-system)
+  - [Available groups](#available-groups)
+  - [Naming conventions](#naming-conventions)
+  - [Repo structure](#repo-structure)
+- [Setup](#setup)
+  - [Step 1: Add the subtree](#step-1-add-the-subtree)
+  - [Step 2: Create the symlink](#step-2-create-the-symlink)
+  - [Step 3: Set up git aliases](#step-3-set-up-git-aliases-recommended)
+  - [Step 4: Add to .gitignore](#step-4-add-to-gitignore-optional)
+- [Pulling updates](#pulling-updates)
+- [Pushing changes back](#pushing-changes-back)
+  - [Branch naming convention](#branch-naming-convention)
+  - [How to push](#how-to-push)
+  - [Merge direction](#merge-direction)
+- [What's included](#whats-included)
+  - [Rules](#rules)
+  - [Commands](#commands)
+  - [Hooks](#hooks)
+  - [Design and UX (Impeccable)](#design-and-ux-impeccable)
+  - [On agents](#on-agents)
+
+---
+
+## How it works
+
+This repo contains a `.claude/` directory with shared rules, skills, commands, and hooks. Consumer projects pull it in as a **git subtree** at the path `claude-config-frontend/`, then create a **symlink** from `.claude` to `claude-config-frontend/.claude` so Claude Code discovers the config automatically.
+
+```
+your-project/
+├── .claude → claude-config-frontend/.claude   # symlink
+├── claude-config-frontend/                    # git subtree (this repo)
+│   ├── .claude/
+│   │   ├── rules/
+│   │   ├── skills/
+│   │   ├── commands/
+│   │   └── hooks/
+│   ├── .gitignore
+│   └── README.md
+└── src/                                       # your project code
+```
+
+The subtree is fully committed in the consumer project's git history. You can pull updates from this repo and push changes back via PRs.
+
+### The four-tier system
+
+We use a naming convention to separate config by ownership and scope:
 
 | Tier    | Managed in                     | File pattern     | Scope                              |
 |---------|--------------------------------|------------------|------------------------------------|
@@ -12,8 +58,6 @@ We use a simple naming convention to separate config by ownership and scope:
 | group   | subtree `group/*` branches     | `*.group.*`      | App-category-specific config       |
 | project | each project repo              | `*.project.*`    | Per-project config                 |
 | local   | each engineer's machine        | `*.local.*`      | Per-engineer, never committed      |
-
-### Tier hierarchy
 
 Config is applied in order from broadest to most specific:
 
@@ -33,9 +77,14 @@ Groups represent categories of apps:
 
 Each group has a dedicated branch: `group/strium`, `group/startale`, `group/sdk`
 
-## Where files live
+### Naming conventions
 
-This repo defines the **team tier** (on `main`) under:
+Use the tier marker as the middle segment: `name.<tier>.ext`
+
+- Examples: `frontend.team.md`, `dex.group.md`, `lint.project.md`, `personal.local.md`
+- Tier markers: `team`, `group`, `project`, `local`
+
+### Repo structure
 
 ```
 .claude/
@@ -50,159 +99,13 @@ This repo defines the **team tier** (on `main`) under:
     └── design-and-ux/    # Design system context skills
 ```
 
-Files are organized by domain (e.g., `ux/`) within each folder. This allows adding other domains later (e.g., `api/`, `testing/`).
+Files are organized by domain (e.g., `design-and-ux/`) within each folder. This allows adding other domains later (e.g., `api/`, `testing/`).
 
 Each folder contains `*.team.*` files on `main`, with `*.group.*` files added on group branches.
 
-## Branch rules
+---
 
-### Never merge group branches into main
-
-Group branches (`group/strium`, `group/startale`, `group/sdk`) contain group-specific config that must not leak into `main`. The merge direction is always:
-
-```
-main → group branches    ✅  (merge main INTO group)
-group branches → main    ❌  (NEVER merge group INTO main)
-```
-
-When team-level changes are made on `main`, merge main into each group branch to pick them up:
-
-```bash
-git checkout group/strium
-git merge main
-```
-
-### Contributing changes back to this repo
-
-When making changes from a consumer project via `git subtree push`, always push to a **feature branch** — never directly to `main` or a `group/*` branch. Open a PR for review.
-
-Branch naming convention for subtree PRs:
-
-```
-from/<consumer-project>/<short-description>
-```
-
-Examples:
-- `from/dex-app/add-trading-rules`
-- `from/super-app/update-motion-tokens`
-- `from/sdk-docs/fix-a11y-rule`
-
-## Design and UX
-
-The `design-and-ux/` domain provides comprehensive frontend quality tooling built on [Impeccable](https://github.com/pbakaus/impeccable) by Paul Bakaus.
-
-### Why Impeccable?
-
-Without guidance, AI coding assistants produce generic output: Inter font, purple-to-blue gradients, cards nested inside cards, gray text on colored backgrounds, and hero sections with glassmorphism. Every LLM trained on the same templates produces the same generic output.
-
-Impeccable is an open-source Claude Code skill set (Apache 2.0) that addresses this "AI slop" problem by:
-
-- **Telling AI what NOT to do** — Negative constraints break the default trajectory
-- **Providing domain-specific guidance** — 7 reference docs covering typography, color, spatial design, motion, interaction, responsive, and UX writing
-- **Offering targeted slash commands** — 20 commands for specific design tasks
-
-### Impeccable Skills
-
-| Skill | Description |
-|-------|-------------|
-| `/audit` | Comprehensive quality audit (a11y, performance, theming, responsive) |
-| `/critique` | UX review with actionable feedback |
-| `/polish` | Final pre-ship quality pass |
-| `/normalize` | Align with design system standards |
-| `/colorize` | Color palette and theming |
-| `/typeset` | Typography improvements |
-| `/arrange` | Layout and spatial design |
-| `/animate` | Motion and transitions |
-| `/bolder` | Increase visual impact |
-| `/quieter` | Reduce visual noise |
-| `/delight` | Add personality and moments of joy |
-| `/overdrive` | Maximum creative expression |
-| `/clarify` | Improve comprehension and scannability |
-| `/distill` | Simplify and reduce complexity |
-| `/extract` | Pull reusable components |
-| `/adapt` | Responsive and cross-platform adaptations |
-| `/harden` | Edge cases, error states, defensive design |
-| `/onboard` | First-run and onboarding flows |
-| `/optimize` | Performance optimization |
-| `/teach-impeccable` | One-time setup — gathers project design context |
-
-### How It Connects
-
-1. **Skills reference each other** — `/audit` suggests follow-up commands like `/normalize` or `/optimize`
-2. **Hub skill** — `frontend-design` provides design principles and anti-patterns that other skills reference
-3. **Project context** — Run `/teach-impeccable` once per project to capture brand, audience, and aesthetic direction in `.impeccable.md`
-
-## Available slash commands
-
-| Command | Description |
-|---------|-------------|
-| `/review-ux` | Full review across all four UX rule groups (a11y, motion, interaction, UX patterns) |
-| `/review-motion` | Motion-only review — subset of `/review-ux` for animation/transition work |
-
-### /review-ux
-
-Runs a comprehensive UX review against all rule groups:
-
-1. **Pre-check** — Scans for duplicate components that already exist in the design system
-2. **Accessibility** — WCAG compliance, ARIA, keyboard navigation, focus management
-3. **Animation & Motion** — Transitions, reduced-motion support, performance
-4. **Interaction Design** — States, touch targets, dialogs, optimistic UI
-5. **UX Patterns** — Design tokens, empty/loading states, forms, dark/light mode
-
-Output is a structured report with severity levels: `error`, `warning`, `prompt`.
-
-### /review-motion
-
-Quick motion-only review for when you're working exclusively on animations or transitions.
-Runs only the pre-check and motion steps from `/review-ux`.
-
-## Hooks
-
-| Hook | Trigger | Description |
-|------|---------|-------------|
-| `pre-commit-ux-prompt` | pre-commit | Prompts engineer to run `/review-ux` when UI files are staged |
-
-### pre-commit-ux-prompt
-
-Fires when staged files include `*.tsx`, `*.css`, or `*.module.css`.
-Prompts the engineer to optionally run `/review-ux` before committing.
-Does not block — responds to `n` or timeout by allowing the commit to proceed.
-
-## Rules
-
-Team-tier rules provide passive context that Claude uses when working on matching files:
-
-| Rule | Applies to | Description |
-|------|------------|-------------|
-| `ux.team.md` | `**/*.tsx`, `**/*.css` | UX patterns, component conventions, layout rules |
-| `a11y.team.md` | `**/*.tsx` | Accessibility — WCAG, ARIA, keyboard nav, focus |
-| `motion.team.md` | `**/*.tsx`, `**/*.css` | Animation, transitions, reduced-motion, performance |
-| `interaction.team.md` | `**/*.tsx` | States, touch targets, dialogs, optimistic UI |
-
-## On agents
-
-The current commands are self-contained. If review logic grows complex enough
-to warrant separation, the recommended upgrade path is:
-
-- `@a11y-agent` — dedicated accessibility reviewer, callable from `/review-ux` or independently
-- `@motion-agent` — dedicated motion reviewer
-
-This keeps commands thin and agents focused. Promote to agents when you find
-yourself duplicating review logic across multiple commands.
-
-## Naming conventions
-
-- Use the tier marker as the middle segment: `name.<tier>.ext`
-  - Examples: `frontend.team.md`, `dex.group.md`, `lint.project.md`, `personal.local.md`
-- Tier markers are:
-  - `team`
-  - `group`
-  - `project`
-  - `local`
-
-## Adding this repo to a project (git subtree)
-
-This repo is added to consumer projects as a **git subtree**. The subtree is placed at a neutral path, then symlinked to `.claude/` so Claude Code picks it up.
+## Setup
 
 ### Step 1: Add the subtree
 
@@ -237,8 +140,8 @@ git commit -m "Add .claude symlink to subtree config"
 Add these to your project's git config for shorter commands:
 
 ```bash
-git config alias.cc-pull '!git subtree pull --prefix=claude-config-frontend claude-config main --squash'
-git config alias.cc-push '!git subtree push --prefix=claude-config-frontend claude-config'
+git config alias.cc-pull 'subtree pull --prefix=claude-config-frontend claude-config main --squash'
+git config alias.cc-push 'subtree push --prefix=claude-config-frontend claude-config'
 ```
 
 Then use:
@@ -262,6 +165,8 @@ The subtree is fully committed, so no `.gitignore` changes are strictly needed. 
 settings.local.*
 ```
 
+---
+
 ## Pulling updates
 
 ```bash
@@ -270,9 +175,30 @@ git cc-pull
 git subtree pull --prefix=claude-config-frontend claude-config main --squash
 ```
 
+For a specific group branch:
+
+```bash
+git subtree pull --prefix=claude-config-frontend claude-config group/strium --squash
+```
+
+---
+
 ## Pushing changes back
 
-Changes made to config files inside a consumer project can be pushed back to this repo. Always push to a feature branch and open a PR — never push directly to `main` or `group/*`.
+Changes made to config files inside a consumer project can be pushed back to this repo. Always push to a **feature branch** and open a PR — never push directly to `main` or `group/*`.
+
+### Branch naming convention
+
+```
+from/<consumer-project>/<short-description>
+```
+
+Examples:
+- `from/dex-app/add-trading-rules`
+- `from/super-app/update-motion-tokens`
+- `from/sdk-docs/fix-a11y-rule`
+
+### How to push
 
 ```bash
 git cc-push from/my-project/add-api-rules
@@ -282,33 +208,102 @@ git subtree push --prefix=claude-config-frontend claude-config from/my-project/a
 
 Then open a PR from `from/my-project/add-api-rules` → `main` (or the appropriate `group/*` branch).
 
-## Updating to latest team/group config
+### Merge direction
+
+Group branches (`group/strium`, `group/startale`, `group/sdk`) contain group-specific config that must not leak into `main`. The merge direction is strictly one-way:
+
+```
+main → group branches    ✅  (merge main INTO group)
+group branches → main    ❌  (NEVER merge group INTO main)
+```
+
+When team-level changes are made on `main`, merge main into each group branch to pick them up:
 
 ```bash
-git cc-pull
-# Or for a specific group branch:
-git subtree pull --prefix=claude-config-frontend claude-config group/strium --squash
+git checkout group/strium
+git merge main
 ```
+
+---
 
 ## What's included
 
-### Rules (passive context)
-- `rules/design-and-ux/ux.team.md` — UX patterns, component conventions, layout
-- `rules/design-and-ux/a11y.team.md` — Accessibility standards
-- `rules/design-and-ux/motion.team.md` — Animation and transition rules
-- `rules/design-and-ux/interaction.team.md` — Interaction design patterns
+### Rules
 
-### Commands (slash commands)
-- `commands/design-and-ux/review-ux.team.md` — Full UX review command
-- `commands/design-and-ux/review-motion.team.md` — Motion-only review command
+Team-tier rules provide passive context that Claude uses when working on matching files:
+
+| Rule | Applies to | Description |
+|------|------------|-------------|
+| `ux.team.md` | `**/*.tsx`, `**/*.css` | UX patterns, component conventions, layout rules |
+| `a11y.team.md` | `**/*.tsx` | Accessibility — WCAG, ARIA, keyboard nav, focus |
+| `motion.team.md` | `**/*.tsx`, `**/*.css` | Animation, transitions, reduced-motion, performance |
+| `interaction.team.md` | `**/*.tsx` | States, touch targets, dialogs, optimistic UI |
+| `contributing.team.md` | all files | Branch naming and merge direction rules |
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `/review-ux` | Full review across all four UX rule groups (a11y, motion, interaction, UX patterns) |
+| `/review-motion` | Motion-only review — subset of `/review-ux` for animation/transition work |
+
+**`/review-ux`** runs a comprehensive UX review:
+
+1. **Pre-check** — Scans for duplicate components that already exist in the design system
+2. **Accessibility** — WCAG compliance, ARIA, keyboard navigation, focus management
+3. **Animation & Motion** — Transitions, reduced-motion support, performance
+4. **Interaction Design** — States, touch targets, dialogs, optimistic UI
+5. **UX Patterns** — Design tokens, empty/loading states, forms, dark/light mode
+
+Output is a structured report with severity levels: `error`, `warning`, `prompt`.
+
+**`/review-motion`** is a quick motion-only subset of `/review-ux` for animation/transition work.
 
 ### Hooks
-- `hooks/design-and-ux/pre-commit-ux-prompt.team.md` — Pre-commit prompt for UI file changes
 
-### Skills
-- 20+ Impeccable design skills for frontend quality
-- `skills/design-dev-tools.md` — Design dev tooling skill
+| Hook | Trigger | Description |
+|------|---------|-------------|
+| `pre-commit-ux-prompt` | pre-commit | Prompts engineer to run `/review-ux` when UI files are staged |
 
-### Structure
-- `.claude/*/.gitkeep` to establish folders in git
-- Group branches add `CLAUDE.group.md` with group-specific context
+Fires when staged files include `*.tsx`, `*.css`, or `*.module.css`. Does not block — responds to `n` or timeout by allowing the commit to proceed.
+
+### Design and UX (Impeccable)
+
+The `design-and-ux/` domain provides frontend quality tooling built on [Impeccable](https://github.com/pbakaus/impeccable) by Paul Bakaus.
+
+**Why Impeccable?** Without guidance, AI coding assistants produce generic output — Inter font, purple-to-blue gradients, cards nested inside cards, gray text on colored backgrounds. Impeccable is an open-source Claude Code skill set (Apache 2.0) that breaks these defaults with negative constraints, domain-specific reference docs, and targeted slash commands.
+
+| Skill | Description |
+|-------|-------------|
+| `/frontend-design` | Hub skill — design principles and anti-patterns referenced by other skills |
+| `/audit` | Comprehensive quality audit (a11y, performance, theming, responsive) |
+| `/critique` | UX review with actionable feedback |
+| `/polish` | Final pre-ship quality pass |
+| `/normalize` | Align with design system standards |
+| `/colorize` | Color palette and theming |
+| `/typeset` | Typography improvements |
+| `/arrange` | Layout and spatial design |
+| `/animate` | Motion and transitions |
+| `/bolder` | Increase visual impact |
+| `/quieter` | Reduce visual noise |
+| `/delight` | Add personality and moments of joy |
+| `/overdrive` | Maximum creative expression |
+| `/clarify` | Improve comprehension and scannability |
+| `/distill` | Simplify and reduce complexity |
+| `/extract` | Pull reusable components |
+| `/adapt` | Responsive and cross-platform adaptations |
+| `/harden` | Edge cases, error states, defensive design |
+| `/onboard` | First-run and onboarding flows |
+| `/optimize` | Performance optimization |
+| `/teach-impeccable` | One-time setup — gathers project design context |
+
+Skills reference each other — `/audit` suggests follow-ups like `/normalize` or `/optimize`. Run `/teach-impeccable` once per project to capture brand, audience, and aesthetic direction in `.impeccable.md`.
+
+### On agents
+
+The current commands are self-contained. If review logic grows complex enough to warrant separation, the recommended upgrade path is:
+
+- `@a11y-agent` — dedicated accessibility reviewer
+- `@motion-agent` — dedicated motion reviewer
+
+Promote to agents when you find yourself duplicating review logic across multiple commands.
