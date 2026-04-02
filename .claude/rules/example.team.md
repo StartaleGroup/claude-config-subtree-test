@@ -8,5 +8,10 @@ Put shared guidance here. Keep it general—no project-specific policies.
 
 # Team rules (example)
 
-TODO: Define team-shared rules skeleton (no content yet).
+## Code review expectations
+
+- PRs should include a clear description of what changed and why
+- Keep PRs focused — one concern per PR
+- Review for correctness, readability, and alignment with team conventions
+- Approve only when all review comments are resolved
 
