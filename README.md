@@ -8,8 +8,8 @@ We use a simple naming convention to separate config by ownership and scope:
 
 | Tier    | Managed in                     | File pattern     | Scope                              |
 |---------|--------------------------------|------------------|------------------------------------|
-| team    | submodule `main`               | `*.team.*`       | All projects across the team       |
-| group   | submodule `group/*` branches   | `*.group.*`      | App-category-specific config       |
+| team    | subtree `main`                 | `*.team.*`       | All projects across the team       |
+| group   | subtree `group/*` branches     | `*.group.*`      | App-category-specific config       |
 | project | each project repo              | `*.project.*`    | Per-project config                 |
 | local   | each engineer's machine        | `*.local.*`      | Per-engineer, never committed      |
 
@@ -53,6 +53,39 @@ This repo defines the **team tier** (on `main`) under:
 Files are organized by domain (e.g., `ux/`) within each folder. This allows adding other domains later (e.g., `api/`, `testing/`).
 
 Each folder contains `*.team.*` files on `main`, with `*.group.*` files added on group branches.
+
+## Branch rules
+
+### Never merge group branches into main
+
+Group branches (`group/strium`, `group/startale`, `group/sdk`) contain group-specific config that must not leak into `main`. The merge direction is always:
+
+```
+main → group branches    ✅  (merge main INTO group)
+group branches → main    ❌  (NEVER merge group INTO main)
+```
+
+When team-level changes are made on `main`, merge main into each group branch to pick them up:
+
+```bash
+git checkout group/strium
+git merge main
+```
+
+### Contributing changes back to this repo
+
+When making changes from a consumer project via `git subtree push`, always push to a **feature branch** — never directly to `main` or a `group/*` branch. Open a PR for review.
+
+Branch naming convention for subtree PRs:
+
+```
+subtree/<consumer-project>/<short-description>
+```
+
+Examples:
+- `subtree/dex-app/add-trading-rules`
+- `subtree/super-app/update-motion-tokens`
+- `subtree/sdk-docs/fix-a11y-rule`
 
 ## Design and UX
 
@@ -167,99 +200,97 @@ yourself duplicating review logic across multiple commands.
   - `project`
   - `local`
 
-## Adding this repo to a project (submodule)
+## Adding this repo to a project (git subtree)
 
-The recommended setup is to add this repo as a **submodule** inside your project, and keep project/local files in the project repo alongside it.
+This repo is added to consumer projects as a **git subtree**. The subtree is placed at a neutral path, then symlinked to `.claude/` so Claude Code picks it up.
 
-One practical layout looks like:
-
-```
-<project-root>/
-  .claude/
-    team/                # git submodule (this repo)
-    agents/              # project/local live here (tracked by the project repo)
-    commands/
-    hooks/
-    rules/
-    skills/
-```
-
-### Step 1: Add the submodule
+### Step 1: Add the subtree
 
 ```bash
-git submodule add git@github.com:startale/claude-config.git .claude/team
-git submodule update --init --recursive
+# Add the remote (one-time)
+git remote add claude-config https://github.com/StartaleGroup/claude-config-frontend.git
+
+# Add the subtree
+git subtree add --prefix=claude-config-frontend claude-config main --squash
 ```
 
-### Step 2: Switch to your group branch
-
-Depending on which app category your project belongs to, switch the submodule to the appropriate group branch:
+For a group-specific branch:
 
 ```bash
-cd .claude/team
-git checkout group/strium    # For Strium homepage/DEX projects
-# OR
-git checkout group/startale  # For Startale super app projects
-# OR
-git checkout group/sdk       # For SDK-related projects
-cd ../..
+git subtree add --prefix=claude-config-frontend claude-config group/strium --squash
 ```
 
-To lock your project to a specific group branch:
+### Step 2: Create the symlink
+
+Claude Code looks for `.claude/` at the project root. Create a symlink so it finds the config:
 
 ```bash
-git add .claude/team
-git commit -m "Pin claude-config submodule to group/strium branch"
+ln -s claude-config-frontend/.claude .claude
+git add .claude
+git commit -m "Add .claude symlink to subtree config"
 ```
 
-### Step 3: Set up your project files
+> **Important:** The symlink must point to `claude-config-frontend/.claude`, not to `claude-config-frontend/` itself. The subtree root also contains `.gitignore` and `README.md` which should not live inside `.claude/`.
 
-Then, in the project repo:
+### Step 3: Set up git aliases (recommended)
 
-- Put team-shared files in `.claude/team/.claude/**` (from this repo, `main` branch)
-- Put group-shared files in `.claude/team/.claude/**` (from this repo, `group/*` branch)
-- Put project files in `.claude/**` using `*.project.*`
-- Put personal files in `.claude/**` using `*.local.*`
+Add these to your project's git config for shorter commands:
 
-## Project repo `.gitignore` snippet (copy/paste)
+```bash
+git config alias.cc-pull '!git subtree pull --prefix=claude-config-frontend claude-config main --squash'
+git config alias.cc-push '!git subtree push --prefix=claude-config-frontend claude-config'
+```
 
-Add this to **each project repo**'s `.gitignore` to ensure group and personal files never get committed to the project repo, while allowing project-tier files:
+Then use:
+
+```bash
+# Pull latest config
+git cc-pull
+
+# Push changes back (always to a feature branch, then open a PR)
+git cc-push subtree/my-project/description-of-change
+```
+
+### Step 4: Add to .gitignore (optional)
+
+The subtree is fully committed, so no `.gitignore` changes are strictly needed. However, you may want to ignore local config files:
 
 ```gitignore
-# Claude config tiers
-# - *.team.* lives in the .claude/team submodule (main branch)
-# - *.group.* lives in the .claude/team submodule (group/* branch)
-# - *.project.* is committed in this project repo
-# - *.local.* is personal-only (never committed)
-
-# Group-tier config (managed via submodule branch, not committed per-project)
-.claude/*.group.*
-.claude/**/*.group.*
-settings.group.*
-
-# Local/personal config (never committed)
+# Local/personal Claude config (never committed)
 .claude/*.local.*
 .claude/**/*.local.*
 settings.local.*
 ```
 
-If you want to ensure the **submodule directory itself** is not mistaken for project config, do not add ignore rules for `.claude/team/` (it's tracked via the gitlink created by the submodule).
+## Pulling updates
+
+```bash
+git cc-pull
+# Or without alias:
+git subtree pull --prefix=claude-config-frontend claude-config main --squash
+```
+
+## Pushing changes back
+
+Changes made to config files inside a consumer project can be pushed back to this repo. Always push to a feature branch and open a PR — never push directly to `main` or `group/*`.
+
+```bash
+git cc-push subtree/my-project/add-api-rules
+# Or without alias:
+git subtree push --prefix=claude-config-frontend claude-config subtree/my-project/add-api-rules
+```
+
+Then open a PR from `subtree/my-project/add-api-rules` → `main` (or the appropriate `group/*` branch).
 
 ## Updating to latest team/group config
 
-To pull the latest changes from the config repo:
-
 ```bash
-cd .claude/team
-git pull origin <your-group-branch>  # e.g., group/strium
-cd ../..
-git add .claude/team
-git commit -m "Update claude-config submodule"
+git cc-pull
+# Or for a specific group branch:
+git subtree pull --prefix=claude-config-frontend claude-config group/strium --squash
 ```
 
 ## What's included
-
-This repo contains:
 
 ### Rules (passive context)
 - `rules/design-and-ux/ux.team.md` — UX patterns, component conventions, layout
@@ -275,7 +306,8 @@ This repo contains:
 - `hooks/design-and-ux/pre-commit-ux-prompt.team.md` — Pre-commit prompt for UI file changes
 
 ### Skills
-- `skills/design-and-ux/design-system.team.md` — Design system context (tokens, components, patterns)
+- 20+ Impeccable design skills for frontend quality
+- `skills/design-dev-tools.md` — Design dev tooling skill
 
 ### Structure
 - `.claude/*/.gitkeep` to establish folders in git
