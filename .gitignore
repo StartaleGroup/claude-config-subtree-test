@@ -1,19 +1,19 @@
-# for local, personal .claude rules, etc.
+# for local, personal rules, etc.
 settings.local.json
 settings.local.*
-.claude/**/*.local.*
-.claude/**local**.md
-.claude/agents/**local**.md
-.claude/commands/**local**.md
-.claude/rules/**local**.md
-.claude/skills/**local**.md
+**/*.local.*
+**local**.md
+agents/**local**.md
+commands/**local**.md
+rules/**local**.md
+skills/**local**.md
 
-# for project .claude rules, etc.
+# for project rules, etc.
 settings.project.json
 settings.project.*
-.claude/**/*.project.*
-.claude/**project**.md
-.claude/agents/**project**.md
-.claude/commands/**project**.md
-.claude/rules/**project**.md
-.claude/skills/**project**.md
+**/*.project.*
+**project**.md
+agents/**project**.md
+commands/**project**.md
+rules/**project**.md
+skills/**project**.md

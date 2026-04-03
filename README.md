@@ -11,9 +11,8 @@ Shared Claude Code configuration for Startale front-end projects, distributed as
   - [Repo structure](#repo-structure)
 - [Setup](#setup)
   - [Step 1: Add the subtree](#step-1-add-the-subtree)
-  - [Step 2: Create the symlink](#step-2-create-the-symlink)
-  - [Step 3: Set up git aliases](#step-3-set-up-git-aliases-recommended)
-  - [Step 4: Add to .gitignore](#step-4-add-to-gitignore-optional)
+  - [Step 2: Set up git aliases](#step-2-set-up-git-aliases-recommended)
+  - [Step 3: Add to .gitignore](#step-3-add-to-gitignore-optional)
 - [Pulling updates](#pulling-updates)
 - [Pushing changes back](#pushing-changes-back)
   - [Branch naming convention](#branch-naming-convention)
@@ -30,20 +29,19 @@ Shared Claude Code configuration for Startale front-end projects, distributed as
 
 ## How it works
 
-This repo contains a `.claude/` directory with shared rules, skills, commands, and hooks. Consumer projects pull it in as a **git subtree** at the path `claude-config-frontend/`, then create a **symlink** from `.claude` to `claude-config-frontend/.claude` so Claude Code discovers the config automatically.
+This repo's root contains the contents of a `.claude/` directory — rules, skills, commands, and hooks. Consumer projects pull it in as a **git subtree** with the prefix `.claude`, so the contents land directly in `.claude/` and Claude Code discovers the config automatically.
 
 ```
 your-project/
-├── .claude → claude-config-frontend/.claude   # symlink
-├── claude-config-frontend/                    # git subtree (this repo)
-│   ├── .claude/
-│   │   ├── rules/
-│   │   ├── skills/
-│   │   ├── commands/
-│   │   └── hooks/
+├── .claude/                    # git subtree (this repo)
+│   ├── rules/
+│   ├── skills/
+│   ├── commands/
+│   ├── hooks/
+│   ├── agents/
 │   ├── .gitignore
 │   └── README.md
-└── src/                                       # your project code
+└── src/                        # your project code
 ```
 
 The subtree is fully committed in the consumer project's git history. You can pull updates from this repo and push changes back via PRs.
@@ -87,15 +85,14 @@ Use the tier marker as the middle segment: `name.<tier>.ext`
 ### Repo structure
 
 ```
-.claude/
-├── agents/
-├── commands/
+agents/
+commands/
 │   └── design-and-ux/    # UX review commands
-├── hooks/
+hooks/
 │   └── design-and-ux/    # UX-related hooks
-├── rules/
+rules/
 │   └── design-and-ux/    # UX, a11y, motion, interaction rules
-└── skills/
+skills/
     └── design-and-ux/    # Design system context skills
 ```
 
@@ -123,27 +120,16 @@ First, choose the branch that matches your project's group. Group branches inclu
 git remote add claude-config https://github.com/StartaleGroup/claude-config-frontend.git
 
 # Add the subtree (replace BRANCH with your group branch)
-git subtree add --prefix=claude-config-frontend claude-config group/strium```
-
-### Step 2: Create the symlink
-
-Claude Code looks for `.claude/` at the project root. Create a symlink so it finds the config:
-
-```bash
-ln -s claude-config-frontend/.claude .claude
-git add .claude
-git commit -m "Add .claude symlink to subtree config"
+git subtree add --prefix=.claude claude-config group/strium
 ```
 
-> **Important:** The symlink must point to `claude-config-frontend/.claude`, not to `claude-config-frontend/` itself. The subtree root also contains `.gitignore` and `README.md` which should not live inside `.claude/`.
-
-### Step 3: Set up git aliases (recommended)
+### Step 2: Set up git aliases (recommended)
 
 Add these to your project's git config (replace `group/strium` with your group branch):
 
 ```bash
-git config alias.cc-pull 'subtree pull --prefix=claude-config-frontend claude-config group/strium --squash'
-git config alias.cc-push 'subtree push --prefix=claude-config-frontend claude-config'
+git config alias.cc-pull 'subtree pull --prefix=.claude claude-config group/strium'
+git config alias.cc-push 'subtree push --prefix=.claude claude-config'
 ```
 
 Then use:
@@ -156,7 +142,7 @@ git cc-pull
 git cc-push from/my-project/description-of-change
 ```
 
-### Step 4: Add to .gitignore (optional)
+### Step 3: Add to .gitignore (optional)
 
 The subtree is fully committed, so no `.gitignore` changes are strictly needed. However, you may want to ignore local config files:
 
@@ -174,7 +160,7 @@ settings.local.*
 ```bash
 git cc-pull
 # Or without alias (use your group branch):
-git subtree pull --prefix=claude-config-frontend claude-config group/strium
+git subtree pull --prefix=.claude claude-config group/strium
 ```
 
 > **Note:** This creates a merge commit, so your editor will open for a commit message. The default message is fine — save and quit (`:wq` in vim) to continue.
@@ -212,7 +198,7 @@ Examples:
 ```bash
 git cc-push from/my-project/add-api-rules
 # Or without alias:
-git subtree push --prefix=claude-config-frontend claude-config from/my-project/add-api-rules
+git subtree push --prefix=.claude claude-config from/my-project/add-api-rules
 ```
 
 Then open a PR from `from/my-project/add-api-rules` → `main` (or the appropriate `group/*` branch).
